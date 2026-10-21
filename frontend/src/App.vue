@@ -122,8 +122,11 @@
       :downloading="updateState.downloading"
       :download-percent="updateState.downloadPercent"
       :update-info="updateState.info"
+      :error-message="updateState.errorMessage"
       @close="updateState.show = false"
       @install="handleStartInstallUpdate"
+      @retry="handleCheckUpdate(false)"
+      @open-release="openReleaseInBrowser"
     />
   </div>
 </template>
@@ -183,21 +186,30 @@ const updateState = reactive({
   downloading: false,
   downloadPercent: 0,
   info: null as any,
+  errorMessage: '',
 })
 
 async function handleCheckUpdate(silent = false) {
-  if (!window.go?.main?.App) return
+  if (!window.go?.main?.App) {
+    if (!silent) {
+      updateState.show = true
+      updateState.errorMessage = '未检测到应用后端桥接环境'
+    }
+    return
+  }
   if (!silent) {
     updateState.show = true
     updateState.checking = true
     updateState.downloading = false
     updateState.downloadPercent = 0
     updateState.info = null
+    updateState.errorMessage = ''
   }
   try {
     const info = await window.go.main.App.CheckForUpdate()
     updateState.info = info
     updateState.checking = false
+    updateState.errorMessage = ''
     if (silent) {
       if (info && info.has_update) {
         updateState.show = true
@@ -208,9 +220,18 @@ async function handleCheckUpdate(silent = false) {
   } catch (err: any) {
     updateState.checking = false
     if (!silent) {
-      alert('检查更新失败: ' + err)
-      updateState.show = false
+      updateState.show = true
+      updateState.errorMessage = String(err?.message || err)
     }
+  }
+}
+
+function openReleaseInBrowser() {
+  const url = updateState.info?.release_url || 'https://github.com/mayingjie198448/niuZip/releases/latest'
+  if (window.go?.main?.App) {
+    window.go.main.App.OpenInSystem(url)
+  } else {
+    window.open(url, '_blank')
   }
 }
 

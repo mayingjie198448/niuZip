@@ -64,11 +64,27 @@ func getGitHubToken() string {
 	return os.Getenv("GH_TOKEN")
 }
 
-// CheckForUpdate queries GitHub API for the latest release.
+// CheckForUpdate queries GitHub API for the latest release, with automatic web-fallback.
 func (a *App) CheckForUpdate() (*UpdateInfo, error) {
+	// 1. Try standard GitHub REST API
+	info, err := a.checkViaGitHubAPI()
+	if err == nil {
+		return info, nil
+	}
+
+	// 2. If API fails (e.g. unauthenticated Rate Limit 403, network blocked), fallback to Web Redirect check
+	fallbackInfo, fallbackErr := a.checkViaWebRedirect()
+	if fallbackErr == nil {
+		return fallbackInfo, nil
+	}
+
+	return nil, fmt.Errorf("检查更新失败: %w", err)
+}
+
+func (a *App) checkViaGitHubAPI() (*UpdateInfo, error) {
 	apiURL := fmt.Sprintf("https://api.github.com/repos/%s/%s/releases/latest", GitHubRepoOwner, GitHubRepoName)
 
-	client := &http.Client{Timeout: 10 * time.Second}
+	client := &http.Client{Timeout: 8 * time.Second}
 	req, err := http.NewRequest("GET", apiURL, nil)
 	if err != nil {
 		return nil, err
@@ -81,12 +97,11 @@ func (a *App) CheckForUpdate() (*UpdateInfo, error) {
 
 	resp, err := client.Do(req)
 	if err != nil {
-		return nil, fmt.Errorf("检查更新失败: 无法连接 GitHub 服务器 (%w)", err)
+		return nil, fmt.Errorf("无法连接 GitHub API: %w", err)
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode == http.StatusNotFound {
-		// No release yet
 		return &UpdateInfo{
 			HasUpdate:      false,
 			CurrentVersion: CurrentAppVersion,
@@ -130,6 +145,78 @@ func (a *App) CheckForUpdate() (*UpdateInfo, error) {
 		AssetName:      assetName,
 		AssetSize:      assetSize,
 		ReleaseURL:     release.HTMLURL,
+	}, nil
+}
+
+func (a *App) checkViaWebRedirect() (*UpdateInfo, error) {
+	webURL := fmt.Sprintf("https://github.com/%s/%s/releases/latest", GitHubRepoOwner, GitHubRepoName)
+
+	client := &http.Client{
+		Timeout: 8 * time.Second,
+		CheckRedirect: func(req *http.Request, via []*http.Request) error {
+			return http.ErrUseLastResponse // Do not follow redirect
+		},
+	}
+
+	req, err := http.NewRequest("HEAD", webURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("User-Agent", "niuZip-App")
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	loc := resp.Header.Get("Location")
+	if loc == "" {
+		// Fallback to GET
+		getReq, _ := http.NewRequest("GET", webURL, nil)
+		getReq.Header.Set("User-Agent", "niuZip-App")
+		getResp, getErr := client.Do(getReq)
+		if getErr != nil {
+			return nil, getErr
+		}
+		defer getResp.Body.Close()
+		loc = getResp.Header.Get("Location")
+	}
+
+	if loc == "" {
+		return nil, errors.New("无法解析 GitHub 最新发布重定向地址")
+	}
+
+	// Example loc: https://github.com/mayingjie198448/niuZip/releases/tag/v1.0.1
+	parts := strings.Split(loc, "/tag/")
+	if len(parts) < 2 {
+		return nil, fmt.Errorf("无法从重定向地址解析版本: %s", loc)
+	}
+
+	rawTag := parts[1]
+	latestVer := strings.TrimPrefix(rawTag, "v")
+	hasUpdate := isNewerVersion(CurrentAppVersion, latestVer)
+
+	var assetName string
+	if runtime.GOOS == "windows" {
+		assetName = "niuZip-Setup-x64.exe"
+	} else if runtime.GOOS == "darwin" {
+		assetName = "niuZip-arm64.dmg"
+	} else {
+		assetName = "niuZip-darwin-arm64"
+	}
+
+	downloadURL := fmt.Sprintf("https://github.com/%s/%s/releases/download/%s/%s", GitHubRepoOwner, GitHubRepoName, rawTag, assetName)
+
+	return &UpdateInfo{
+		HasUpdate:      hasUpdate,
+		CurrentVersion: CurrentAppVersion,
+		LatestVersion:  latestVer,
+		ReleaseTitle:   fmt.Sprintf("niuZip %s", rawTag),
+		ReleaseNotes:   "包含关键缺陷修复、杀毒软件白名单元数据规范化及性能优化。",
+		DownloadURL:    downloadURL,
+		AssetName:      assetName,
+		ReleaseURL:     loc,
 	}, nil
 }
 

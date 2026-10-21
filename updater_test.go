@@ -44,3 +44,16 @@ func TestFindMatchingAsset(t *testing.T) {
 		t.Fatalf("expected niuZip-arm64.dmg on darwin, got %s", asset.Name)
 	}
 }
+
+func TestCheckViaWebRedirect(t *testing.T) {
+	app := &App{}
+	info, err := app.checkViaWebRedirect()
+	if err != nil {
+		t.Logf("checkViaWebRedirect returned: %v", err)
+		return
+	}
+	if info.LatestVersion == "" {
+		t.Fatal("expected LatestVersion, got empty")
+	}
+	t.Logf("Found via web redirect: version=%s, download=%s", info.LatestVersion, info.DownloadURL)
+}

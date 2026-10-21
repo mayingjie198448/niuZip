@@ -54,6 +54,12 @@
         </div>
 
         <!-- Error / Null fallback -->
+        <div v-else-if="errorMessage" class="state-center">
+          <div class="check-badge error-badge">⚠️</div>
+          <h4>检查更新未成功</h4>
+          <p class="version-sub">{{ errorMessage }}</p>
+        </div>
+
         <div v-else class="state-center">
           <p class="state-text">未能获取版本信息，请检查网络连接。</p>
         </div>
@@ -67,6 +73,14 @@
           </button>
           <button class="btn btn-primary" @click="$emit('install')" :disabled="downloading">
             {{ downloading ? '正在下载...' : '立即下载并更新' }}
+          </button>
+        </template>
+        <template v-else-if="errorMessage">
+          <button class="btn btn-secondary" @click="$emit('retry')">
+            重试
+          </button>
+          <button class="btn btn-primary" @click="$emit('open-release')">
+            浏览器打开 GitHub 下载
           </button>
         </template>
         <template v-else>
@@ -100,11 +114,14 @@ defineProps<{
   downloading: boolean
   downloadPercent: number
   updateInfo: UpdateInfoModel | null
+  errorMessage?: string
 }>()
 
 defineEmits<{
   (e: 'close'): void
   (e: 'install'): void
+  (e: 'retry'): void
+  (e: 'open-release'): void
 }>()
 
 function formatSize(bytes?: number): string {
@@ -230,6 +247,11 @@ function formatSize(bytes?: number): string {
   align-items: center;
   justify-content: center;
   margin-bottom: 14px;
+}
+
+.error-badge {
+  background: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
 }
 
 .state-center h4 {

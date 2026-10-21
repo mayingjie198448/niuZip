@@ -39,7 +39,7 @@ dmg-mac: app-mac
 build-win: frontend-build
 	@echo "==> Cross-compiling Windows x64 binary..."
 	@mkdir -p build/bin
-	CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -tags "production" -ldflags="-s -w -H windowsgui" -o build/bin/$(APP_NAME)-windows-amd64.exe .
+	CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -trimpath -tags "production" -ldflags="-s -w -H windowsgui" -o build/bin/$(APP_NAME)-windows-amd64.exe .
 
 installer-win: build-win
 	@echo "==> Building Windows x64 Setup installer with NSIS..."

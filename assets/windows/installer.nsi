@@ -15,7 +15,17 @@
 !define PRODUCT_UNINST_ROOT_KEY "HKLM"
 
 ; 设置压缩引擎
-SetCompressor /SOLID lzma
+SetCompressor lzma
+
+; 版本信息与属性 (降低杀软误报，提供标准文件属性)
+VIProductVersion "1.0.0.0"
+VIAddVersionKey "ProductName" "${PRODUCT_NAME}"
+VIAddVersionKey "Comments" "Cross-platform high-performance modern archive manager"
+VIAddVersionKey "CompanyName" "${PRODUCT_PUBLISHER}"
+VIAddVersionKey "LegalCopyright" "Copyright © 2026 niuZip. All rights reserved."
+VIAddVersionKey "FileDescription" "${PRODUCT_NAME} Setup Installer"
+VIAddVersionKey "FileVersion" "${PRODUCT_VERSION}.0"
+VIAddVersionKey "ProductVersion" "${PRODUCT_VERSION}.0"
 
 ; 界面设置
 Name "${PRODUCT_NAME} ${PRODUCT_VERSION}"

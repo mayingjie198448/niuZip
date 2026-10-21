@@ -1,0 +1,38 @@
+Windows Registry Editor Version 5.00
+
+; ====================================================================
+; niuZip Windows 鼠标右键上下文菜单注册表示例
+; 提示：请将下方路径中的 C:\\Path\\To\\niuZip-windows-amd64.exe 替换为实际程序路径
+; ====================================================================
+
+; 1. ZIP 文件
+[HKEY_CURRENT_USER\Software\Classes\SystemFileAssociations\.zip\shell\niuZip]
+@="用 niuZip 打开"
+"Icon"="\"C:\\Path\\To\\niuZip-windows-amd64.exe\",0"
+
+[HKEY_CURRENT_USER\Software\Classes\SystemFileAssociations\.zip\shell\niuZip\command]
+@="\"C:\\Path\\To\\niuZip-windows-amd64.exe\" \"%1\""
+
+; 2. 7Z 文件
+[HKEY_CURRENT_USER\Software\Classes\SystemFileAssociations\.7z\shell\niuZip]
+@="用 niuZip 打开"
+"Icon"="\"C:\\Path\\To\\niuZip-windows-amd64.exe\",0"
+
+[HKEY_CURRENT_USER\Software\Classes\SystemFileAssociations\.7z\shell\niuZip\command]
+@="\"C:\\Path\\To\\niuZip-windows-amd64.exe\" \"%1\""
+
+; 3. RAR 文件
+[HKEY_CURRENT_USER\Software\Classes\SystemFileAssociations\.rar\shell\niuZip]
+@="用 niuZip 打开"
+"Icon"="\"C:\\Path\\To\\niuZip-windows-amd64.exe\",0"
+
+[HKEY_CURRENT_USER\Software\Classes\SystemFileAssociations\.rar\shell\niuZip\command]
+@="\"C:\\Path\\To\\niuZip-windows-amd64.exe\" \"%1\""
+
+; 4. 文件夹 (Directory)
+[HKEY_CURRENT_USER\Software\Classes\Directory\shell\niuZip]
+@="用 niuZip 浏览/压缩"
+"Icon"="\"C:\\Path\\To\\niuZip-windows-amd64.exe\",0"
+
+[HKEY_CURRENT_USER\Software\Classes\Directory\shell\niuZip\command]
+@="\"C:\\Path\\To\\niuZip-windows-amd64.exe\" \"%1\""

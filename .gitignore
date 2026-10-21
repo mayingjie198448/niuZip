@@ -1,0 +1,39 @@
+# Binaries and archives
+*.dmg
+*.iso
+*.dll
+*.so
+*.dylib
+*.app/
+build/
+/bin/
+
+# Keep embedded engine binaries
+!core/engine/bin/
+!core/engine/bin/**
+
+# Temporary test artifacts
+*.tmp
+*.zip.tmp*
+test_output/
+
+# Logs and coverage
+*.log
+*.env
+*.env.*
+coverage.out
+coverage.html
+
+# Go build artifacts
+ccdqZip
+ccdqzip
+
+# OS artifacts
+.DS_Store
+Thumbs.db
+
+# Node / Frontend
+node_modules/
+/dist/
+.wails/
+frontend/node_modules/

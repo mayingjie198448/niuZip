@@ -18,7 +18,7 @@ import (
 )
 
 const (
-	CurrentAppVersion = "1.0.3"
+	CurrentAppVersion = "1.0.4"
 	GitHubRepoOwner   = "mayingjie198448"
 	GitHubRepoName    = "niuZip"
 )

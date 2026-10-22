@@ -55,6 +55,13 @@
       <button class="btn btn-update" @click="$emit('check-update')" title="检查版本更新">
         <Sparkles :size="13" />
         <span>更新</span>
+        <span v-if="hasUpdateBadge" class="update-badge" title="发现新版本可用"></span>
+      </button>
+
+      <!-- GitHub Repository Link -->
+      <button class="btn btn-github" @click="$emit('open-github')" title="访问 GitHub 开源仓库">
+        <Github :size="13" />
+        <span>GitHub</span>
       </button>
     </div>
   </header>
@@ -70,11 +77,13 @@ import {
   List,
   LayoutGrid,
   Sparkles,
+  Github,
 } from 'lucide-vue-next'
 
 defineProps<{
   modelValue: string
   viewMode: 'list' | 'grid'
+  hasUpdateBadge?: boolean
 }>()
 
 defineEmits<{
@@ -85,6 +94,7 @@ defineEmits<{
   (e: 'append'): void
   (e: 'create'): void
   (e: 'check-update'): void
+  (e: 'open-github'): void
 }>()
 </script>
 
@@ -213,6 +223,7 @@ header {
 }
 
 .btn-update {
+  position: relative;
   background: rgba(56, 189, 248, 0.12);
   color: #38bdf8;
   border: 1px solid rgba(56, 189, 248, 0.25);
@@ -222,6 +233,48 @@ header {
 .btn-update:hover {
   background: rgba(56, 189, 248, 0.22);
   border-color: #38bdf8;
+  transform: translateY(-1px);
+}
+
+.update-badge {
+  position: absolute;
+  top: -3px;
+  right: -3px;
+  width: 8px;
+  height: 8px;
+  background-color: #ef4444;
+  border-radius: 50%;
+  border: 1.5px solid var(--bg-surface);
+  box-shadow: 0 0 6px rgba(239, 68, 68, 0.8);
+  animation: pulse-dot 2s infinite;
+}
+
+@keyframes pulse-dot {
+  0% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+  }
+  70% {
+    transform: scale(1.15);
+    box-shadow: 0 0 0 5px rgba(239, 68, 68, 0);
+  }
+  100% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+  }
+}
+
+.btn-github {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-subtle);
+  margin-left: 4px;
+}
+
+.btn-github:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: var(--text-primary);
+  border-color: var(--border-medium);
   transform: translateY(-1px);
 }
 </style>

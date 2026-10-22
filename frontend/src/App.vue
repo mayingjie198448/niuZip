@@ -4,11 +4,13 @@
     <HeaderBar
       v-model="searchQuery"
       v-model:view-mode="viewMode"
+      :has-update-badge="hasUpdateBadge"
       @open="openArchive()"
       @extract="extractAll"
       @append="appendFilesToArchive"
       @create="showCreateModal = true"
       @check-update="handleCheckUpdate(false)"
+      @open-github="openGitHubRepo"
     />
 
     <!-- 2. Smart Flow Banner (Contextual Intelligence) -->
@@ -198,6 +200,8 @@ const updateState = reactive({
   errorMessage: '',
 })
 
+const hasUpdateBadge = ref(false)
+
 async function handleCheckUpdate(silent = false) {
   if (!window.go?.main?.App) {
     if (!silent) {
@@ -207,24 +211,26 @@ async function handleCheckUpdate(silent = false) {
     return
   }
   if (!silent) {
+    hasUpdateBadge.value = false
     updateState.show = true
-    updateState.checking = true
-    updateState.downloading = false
-    updateState.downloadPercent = 0
-    updateState.info = null
-    updateState.errorMessage = ''
+    if (!updateState.info) {
+      updateState.checking = true
+      updateState.downloading = false
+      updateState.downloadPercent = 0
+      updateState.errorMessage = ''
+    }
   }
   try {
     const info = await window.go.main.App.CheckForUpdate()
     updateState.info = info
     updateState.checking = false
     updateState.errorMessage = ''
+    if (info && info.has_update) {
+      hasUpdateBadge.value = true
+    }
     if (silent) {
-      if (info && info.has_update) {
-        updateState.show = true
-      } else {
-        updateState.show = false
-      }
+      // 静默自动检测发现新版本时不弹窗，仅保持红点高亮提示用户
+      updateState.show = false
     }
   } catch (err: any) {
     updateState.checking = false
@@ -232,6 +238,15 @@ async function handleCheckUpdate(silent = false) {
       updateState.show = true
       updateState.errorMessage = String(err?.message || err)
     }
+  }
+}
+
+function openGitHubRepo() {
+  const url = 'https://github.com/mayingjie198448/niuZip'
+  if (window.go?.main?.App) {
+    window.go.main.App.OpenInSystem(url)
+  } else {
+    window.open(url, '_blank')
   }
 }
 

@@ -18,16 +18,22 @@ frontend-build:
 	cd frontend && npm run build
 
 build-mac: frontend-build
-	@echo "==> Building macOS Apple Silicon (arm64) CLI binary..."
+	@echo "==> Building macOS Universal (arm64 + x86_64, macOS 11.0+) binary..."
 	@mkdir -p build/bin
-	CGO_ENABLED=1 GOOS=darwin GOARCH=arm64 go build -tags "production" -ldflags="-s -w -extldflags '-framework UniformTypeIdentifiers'" -o build/bin/$(APP_NAME)-darwin-arm64 .
+	MACOSX_DEPLOYMENT_TARGET=11.0 CGO_ENABLED=1 GOOS=darwin GOARCH=arm64 go build -trimpath -tags "production" -ldflags="-s -w -extldflags '-framework UniformTypeIdentifiers'" -o build/bin/$(APP_NAME)-arm64 .
+	MACOSX_DEPLOYMENT_TARGET=11.0 CGO_ENABLED=1 GOOS=darwin GOARCH=amd64 go build -trimpath -tags "production" -ldflags="-s -w -extldflags '-framework UniformTypeIdentifiers'" -o build/bin/$(APP_NAME)-amd64 .
+	lipo -create -output build/bin/$(APP_NAME)-darwin-arm64 build/bin/$(APP_NAME)-arm64 build/bin/$(APP_NAME)-amd64
+	rm -f build/bin/$(APP_NAME)-arm64 build/bin/$(APP_NAME)-amd64
 
 app-mac: frontend-build
-	@echo "==> Packaging macOS Apple Silicon (arm64) niuZip.app bundle..."
+	@echo "==> Packaging macOS Universal (arm64 + x86_64, macOS 11.0+) niuZip.app bundle..."
 	@mkdir -p build/niuZip.app/Contents/MacOS build/niuZip.app/Contents/Resources
 	@cp assets/macos/Info.plist build/niuZip.app/Contents/Info.plist
 	@if [ -f assets/icons/appicon.icns ]; then cp assets/icons/appicon.icns build/niuZip.app/Contents/Resources/appicon.icns; fi
-	CGO_ENABLED=1 GOOS=darwin GOARCH=arm64 go build -tags "production" -ldflags="-s -w -extldflags '-framework UniformTypeIdentifiers'" -o build/niuZip.app/Contents/MacOS/niuZip .
+	MACOSX_DEPLOYMENT_TARGET=11.0 CGO_ENABLED=1 GOOS=darwin GOARCH=arm64 go build -trimpath -tags "production" -ldflags="-s -w -extldflags '-framework UniformTypeIdentifiers'" -o build/niuZip-arm64 .
+	MACOSX_DEPLOYMENT_TARGET=11.0 CGO_ENABLED=1 GOOS=darwin GOARCH=amd64 go build -trimpath -tags "production" -ldflags="-s -w -extldflags '-framework UniformTypeIdentifiers'" -o build/niuZip-amd64 .
+	lipo -create -output build/niuZip.app/Contents/MacOS/niuZip build/niuZip-arm64 build/niuZip-amd64
+	rm -f build/niuZip-arm64 build/niuZip-amd64
 	codesign --force --deep -s - build/niuZip.app
 	@echo "==> niuZip.app successfully packaged at build/niuZip.app"
 

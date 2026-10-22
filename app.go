@@ -76,6 +76,8 @@ func NewApp() *App {
 // Startup is called by Wails when the desktop application launches.
 func (a *App) Startup(ctx context.Context) {
 	a.ctx = ctx
+	initPlatformServices()
+
 	wailsRuntime.EventsOn(ctx, "wails:file-drop", func(optionalData ...interface{}) {
 		if len(optionalData) > 0 {
 			if paths, ok := optionalData[0].([]string); ok && len(paths) > 0 {

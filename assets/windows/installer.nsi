@@ -7,7 +7,7 @@
 
 ; 基础定义
 !define PRODUCT_NAME "niuZip"
-!define PRODUCT_VERSION "1.0.1"
+!define PRODUCT_VERSION "1.0.2"
 !define PRODUCT_PUBLISHER "niuZip"
 !define PRODUCT_WEB_SITE "https://github.com/mayingjie198448/niuZip"
 !define PRODUCT_DIR_REGKEY "Software\niuZip"
@@ -18,7 +18,7 @@
 SetCompressor lzma
 
 ; 版本信息与属性 (降低杀软误报，提供标准文件属性)
-VIProductVersion "1.0.1.0"
+VIProductVersion "1.0.2.0"
 VIAddVersionKey "ProductName" "${PRODUCT_NAME}"
 VIAddVersionKey "Comments" "Cross-platform high-performance modern archive manager"
 VIAddVersionKey "CompanyName" "${PRODUCT_PUBLISHER}"

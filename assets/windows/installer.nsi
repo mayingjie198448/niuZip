@@ -95,6 +95,9 @@ SectionEnd
 Section "添加到鼠标右键快捷菜单 (解压/压缩)" SecContextMenu
   ; 关联主流压缩文件格式 (级联菜单: 用 niuZip 打开 / 解压到当前文件夹 / 解压到同名文件夹)
   !macro RegisterExtContextMenu EXT
+    ; 先清理旧版本可能残留的单项关联 (特别是旧版的 command 子键与旧默认值)，确保覆盖安装时级联子菜单干净生效
+    DeleteRegKey HKCR "SystemFileAssociations\${EXT}\shell\niuZip"
+
     WriteRegStr HKCR "SystemFileAssociations\${EXT}\shell\niuZip" "MUIVerb" "niuZip"
     WriteRegStr HKCR "SystemFileAssociations\${EXT}\shell\niuZip" "Icon" '"$INSTDIR\niuZip.exe",0'
     WriteRegStr HKCR "SystemFileAssociations\${EXT}\shell\niuZip" "SubCommands" ""
@@ -125,6 +128,7 @@ Section "添加到鼠标右键快捷菜单 (解压/压缩)" SecContextMenu
   !insertmacro RegisterExtContextMenu ".jar"
 
   ; 关联文件夹右键菜单 (立即压缩为 ZIP / 添加到压缩文件...)
+  DeleteRegKey HKCR "Directory\shell\niuZip"
   WriteRegStr HKCR "Directory\shell\niuZip" "MUIVerb" "niuZip"
   WriteRegStr HKCR "Directory\shell\niuZip" "Icon" '"$INSTDIR\niuZip.exe",0'
   WriteRegStr HKCR "Directory\shell\niuZip" "SubCommands" ""
@@ -138,6 +142,7 @@ Section "添加到鼠标右键快捷菜单 (解压/压缩)" SecContextMenu
   WriteRegStr HKCR "Directory\shell\niuZip\Shell\adddialog\command" "" '"$INSTDIR\niuZip.exe" --add-dialog "%1"'
 
   ; 关联任意文件右键菜单 (立即压缩为 ZIP / 添加到压缩文件...)
+  DeleteRegKey HKCR "*\shell\niuZip"
   WriteRegStr HKCR "*\shell\niuZip" "MUIVerb" "niuZip"
   WriteRegStr HKCR "*\shell\niuZip" "Icon" '"$INSTDIR\niuZip.exe",0'
   WriteRegStr HKCR "*\shell\niuZip" "SubCommands" ""

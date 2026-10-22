@@ -23,6 +23,10 @@ func (a *App) RegisterWindowsContextMenu() error {
 	// 1. Cascading menu for archives: Open / Extract Here / Extract to Dir
 	for _, ext := range extensions {
 		subKey := fmt.Sprintf(`Software\Classes\SystemFileAssociations\%s\shell\niuZip`, ext)
+		// Clean up any legacy flat registration from older versions (e.g. v1.0.1 command subkey)
+		_ = registry.DeleteKey(registry.CURRENT_USER, subKey+`\command`)
+		_ = registry.DeleteKey(registry.CURRENT_USER, subKey)
+
 		k, _, err := registry.CreateKey(registry.CURRENT_USER, subKey, registry.ALL_ACCESS)
 		if err != nil {
 			continue
@@ -72,6 +76,10 @@ func (a *App) RegisterWindowsContextMenu() error {
 	// 2. Cascading menu for Folders (Directory) and Files (*): Compress to ZIP / Add to Archive...
 	for _, target := range []string{`Directory`, `*`} {
 		targetKey := fmt.Sprintf(`Software\Classes\%s\shell\niuZip`, target)
+		// Clean up any legacy flat registration from older versions (e.g. v1.0.1 command subkey)
+		_ = registry.DeleteKey(registry.CURRENT_USER, targetKey+`\command`)
+		_ = registry.DeleteKey(registry.CURRENT_USER, targetKey)
+
 		k, _, err := registry.CreateKey(registry.CURRENT_USER, targetKey, registry.ALL_ACCESS)
 		if err != nil {
 			continue

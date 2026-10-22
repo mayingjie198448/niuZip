@@ -163,3 +163,10 @@ func TestAppService_GetPathInfos(t *testing.T) {
 		t.Errorf("expected dir subfolder with IsDir=true, got %+v", infos[1])
 	}
 }
+
+func TestAppService_OpenURL(t *testing.T) {
+	app := niuzip.NewApp()
+	if err := app.OpenURL(""); err != nil {
+		t.Errorf("expected nil for empty URL, got %v", err)
+	}
+}

@@ -82,6 +82,7 @@ declare global {
           PreviewEntry: (entryPath: string) => Promise<string>
           QuickLook: (entryPath: string) => Promise<void>
           OpenInSystem: (entryPath: string) => Promise<void>
+          OpenURL: (url: string) => Promise<void>
           Extract: (opts: ExtractOptions) => Promise<void>
           Compress: (opts: CompressOptions) => Promise<void>
           DeleteEntries: (targetPaths: string[]) => Promise<void>
@@ -103,6 +104,7 @@ declare global {
     runtime?: {
       EventsOn: (eventName: string, callback: (...args: any[]) => void) => void
       EventsEmit: (eventName: string, ...args: any[]) => void
+      BrowserOpenURL?: (url: string) => void
     }
   }
 }

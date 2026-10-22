@@ -243,7 +243,11 @@ async function handleCheckUpdate(silent = false) {
 
 function openGitHubRepo() {
   const url = 'https://github.com/mayingjie198448/niuZip'
-  if (window.go?.main?.App) {
+  if (window.go?.main?.App?.OpenURL) {
+    window.go.main.App.OpenURL(url)
+  } else if (window.runtime?.BrowserOpenURL) {
+    window.runtime.BrowserOpenURL(url)
+  } else if (window.go?.main?.App?.OpenInSystem) {
     window.go.main.App.OpenInSystem(url)
   } else {
     window.open(url, '_blank')
@@ -252,7 +256,11 @@ function openGitHubRepo() {
 
 function openReleaseInBrowser() {
   const url = updateState.info?.release_url || 'https://github.com/mayingjie198448/niuZip/releases/latest'
-  if (window.go?.main?.App) {
+  if (window.go?.main?.App?.OpenURL) {
+    window.go.main.App.OpenURL(url)
+  } else if (window.runtime?.BrowserOpenURL) {
+    window.runtime.BrowserOpenURL(url)
+  } else if (window.go?.main?.App?.OpenInSystem) {
     window.go.main.App.OpenInSystem(url)
   } else {
     window.open(url, '_blank')

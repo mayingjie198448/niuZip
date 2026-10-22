@@ -412,8 +412,31 @@ func (a *App) QuickLook(entryPath string) error {
 	}
 }
 
+// OpenURL opens the specified URL in the system's default web browser.
+func (a *App) OpenURL(targetURL string) error {
+	if targetURL == "" {
+		return nil
+	}
+	if a.ctx != nil {
+		wailsRuntime.BrowserOpenURL(a.ctx, targetURL)
+		return nil
+	}
+	switch runtime.GOOS {
+	case "darwin":
+		return exec.Command("open", targetURL).Start()
+	case "windows":
+		return exec.Command("cmd", "/c", "start", "", targetURL).Start()
+	default:
+		return exec.Command("xdg-open", targetURL).Start()
+	}
+}
+
 // OpenInSystem opens the extracted file using the operating system's default application and watches for edits.
 func (a *App) OpenInSystem(entryPath string) error {
+	if strings.HasPrefix(entryPath, "http://") || strings.HasPrefix(entryPath, "https://") {
+		return a.OpenURL(entryPath)
+	}
+
 	filePath, err := a.PreviewEntry(entryPath)
 	if err != nil {
 		return err

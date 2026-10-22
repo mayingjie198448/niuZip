@@ -34,8 +34,16 @@
 			</dict>
 			<key>NSMessage</key>
 			<string>extractHereService</string>
-			<key>NSPortName</key>
-			<string>niuZip</string>
+			<key>NSRequiredContext</key>
+			<dict>
+				<key>NSTextContent</key>
+				<string>FilePath</string>
+			</dict>
+			<key>NSSendTypes</key>
+			<array>
+				<string>NSFilenamesPboardType</string>
+				<string>public.file-url</string>
+			</array>
 			<key>NSSendFileTypes</key>
 			<array>
 				<string>public.zip-archive</string>
@@ -59,8 +67,16 @@
 			</dict>
 			<key>NSMessage</key>
 			<string>compressToZipService</string>
-			<key>NSPortName</key>
-			<string>niuZip</string>
+			<key>NSRequiredContext</key>
+			<dict>
+				<key>NSTextContent</key>
+				<string>FilePath</string>
+			</dict>
+			<key>NSSendTypes</key>
+			<array>
+				<string>NSFilenamesPboardType</string>
+				<string>public.file-url</string>
+			</array>
 			<key>NSSendFileTypes</key>
 			<array>
 				<string>public.item</string>

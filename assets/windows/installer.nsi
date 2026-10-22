@@ -92,12 +92,24 @@ Section "核心程序文件 (必需)" SecCore
 SectionEnd
 
 ; 2. 注册系统鼠标右键菜单 (默认勾选)
-Section "添加到鼠标右键菜单 ('用 niuZip 打开')" SecContextMenu
-  ; 关联主流压缩文件格式
+Section "添加到鼠标右键快捷菜单 (解压/压缩)" SecContextMenu
+  ; 关联主流压缩文件格式 (级联菜单: 用 niuZip 打开 / 解压到当前文件夹 / 解压到同名文件夹)
   !macro RegisterExtContextMenu EXT
-    WriteRegStr HKCR "SystemFileAssociations\${EXT}\shell\niuZip" "" "用 niuZip 打开"
+    WriteRegStr HKCR "SystemFileAssociations\${EXT}\shell\niuZip" "MUIVerb" "niuZip"
     WriteRegStr HKCR "SystemFileAssociations\${EXT}\shell\niuZip" "Icon" '"$INSTDIR\niuZip.exe",0'
-    WriteRegStr HKCR "SystemFileAssociations\${EXT}\shell\niuZip\command" "" '"$INSTDIR\niuZip.exe" "%1"'
+    WriteRegStr HKCR "SystemFileAssociations\${EXT}\shell\niuZip" "SubCommands" ""
+
+    WriteRegStr HKCR "SystemFileAssociations\${EXT}\shell\niuZip\Shell\open" "" "用 niuZip 打开"
+    WriteRegStr HKCR "SystemFileAssociations\${EXT}\shell\niuZip\Shell\open" "Icon" '"$INSTDIR\niuZip.exe",0'
+    WriteRegStr HKCR "SystemFileAssociations\${EXT}\shell\niuZip\Shell\open\command" "" '"$INSTDIR\niuZip.exe" "%1"'
+
+    WriteRegStr HKCR "SystemFileAssociations\${EXT}\shell\niuZip\Shell\extracthere" "" "解压到当前文件夹"
+    WriteRegStr HKCR "SystemFileAssociations\${EXT}\shell\niuZip\Shell\extracthere" "Icon" '"$INSTDIR\niuZip.exe",0'
+    WriteRegStr HKCR "SystemFileAssociations\${EXT}\shell\niuZip\Shell\extracthere\command" "" '"$INSTDIR\niuZip.exe" --extract-here "%1"'
+
+    WriteRegStr HKCR "SystemFileAssociations\${EXT}\shell\niuZip\Shell\extracttodir" "" "解压到同名文件夹"
+    WriteRegStr HKCR "SystemFileAssociations\${EXT}\shell\niuZip\Shell\extracttodir" "Icon" '"$INSTDIR\niuZip.exe",0'
+    WriteRegStr HKCR "SystemFileAssociations\${EXT}\shell\niuZip\Shell\extracttodir\command" "" '"$INSTDIR\niuZip.exe" --extract-to-dir "%1"'
   !macroend
 
   !insertmacro RegisterExtContextMenu ".zip"
@@ -112,10 +124,31 @@ Section "添加到鼠标右键菜单 ('用 niuZip 打开')" SecContextMenu
   !insertmacro RegisterExtContextMenu ".apk"
   !insertmacro RegisterExtContextMenu ".jar"
 
-  ; 关联文件夹右键菜单
-  WriteRegStr HKCR "Directory\shell\niuZip" "" "用 niuZip 浏览/压缩"
+  ; 关联文件夹右键菜单 (立即压缩为 ZIP / 添加到压缩文件...)
+  WriteRegStr HKCR "Directory\shell\niuZip" "MUIVerb" "niuZip"
   WriteRegStr HKCR "Directory\shell\niuZip" "Icon" '"$INSTDIR\niuZip.exe",0'
-  WriteRegStr HKCR "Directory\shell\niuZip\command" "" '"$INSTDIR\niuZip.exe" "%1"'
+  WriteRegStr HKCR "Directory\shell\niuZip" "SubCommands" ""
+
+  WriteRegStr HKCR "Directory\shell\niuZip\Shell\addtozip" "" "立即压缩为 ZIP"
+  WriteRegStr HKCR "Directory\shell\niuZip\Shell\addtozip" "Icon" '"$INSTDIR\niuZip.exe",0'
+  WriteRegStr HKCR "Directory\shell\niuZip\Shell\addtozip\command" "" '"$INSTDIR\niuZip.exe" --add-to-zip "%1"'
+
+  WriteRegStr HKCR "Directory\shell\niuZip\Shell\adddialog" "" "添加到压缩文件..."
+  WriteRegStr HKCR "Directory\shell\niuZip\Shell\adddialog" "Icon" '"$INSTDIR\niuZip.exe",0'
+  WriteRegStr HKCR "Directory\shell\niuZip\Shell\adddialog\command" "" '"$INSTDIR\niuZip.exe" --add-dialog "%1"'
+
+  ; 关联任意文件右键菜单 (立即压缩为 ZIP / 添加到压缩文件...)
+  WriteRegStr HKCR "*\shell\niuZip" "MUIVerb" "niuZip"
+  WriteRegStr HKCR "*\shell\niuZip" "Icon" '"$INSTDIR\niuZip.exe",0'
+  WriteRegStr HKCR "*\shell\niuZip" "SubCommands" ""
+
+  WriteRegStr HKCR "*\shell\niuZip\Shell\addtozip" "" "立即压缩为 ZIP"
+  WriteRegStr HKCR "*\shell\niuZip\Shell\addtozip" "Icon" '"$INSTDIR\niuZip.exe",0'
+  WriteRegStr HKCR "*\shell\niuZip\Shell\addtozip\command" "" '"$INSTDIR\niuZip.exe" --add-to-zip "%1"'
+
+  WriteRegStr HKCR "*\shell\niuZip\Shell\adddialog" "" "添加到压缩文件..."
+  WriteRegStr HKCR "*\shell\niuZip\Shell\adddialog" "Icon" '"$INSTDIR\niuZip.exe",0'
+  WriteRegStr HKCR "*\shell\niuZip\Shell\adddialog\command" "" '"$INSTDIR\niuZip.exe" --add-dialog "%1"'
 SectionEnd
 
 ; 3. 创建开始菜单快捷方式 (默认勾选)
@@ -133,7 +166,7 @@ SectionEnd
 ; 组件描述语言包
 !insertmacro MUI_FUNCTION_DESCRIPTION_BEGIN
   !insertmacro MUI_DESCRIPTION_TEXT ${SecCore} "niuZip 主执行程序及必要的核心组件。"
-  !insertmacro MUI_DESCRIPTION_TEXT ${SecContextMenu} "在 Windows 资源管理器右键点击压缩包时，显示'用 niuZip 打开'选项。"
+  !insertmacro MUI_DESCRIPTION_TEXT ${SecContextMenu} "在 Windows 资源管理器右键添加快捷菜单 (解压到当前文件夹、解压到同名文件夹、立即压缩为 ZIP、添加到压缩文件...)。"
   !insertmacro MUI_DESCRIPTION_TEXT ${SecStartMenu} "在 Windows 开始菜单中生成应用程序入口及卸载项。"
   !insertmacro MUI_DESCRIPTION_TEXT ${SecDesktopShortcut} "在当前用户桌面上生成 niuZip 启动快捷方式。"
 !insertmacro MUI_FUNCTION_DESCRIPTION_END
@@ -160,6 +193,7 @@ Section "Uninstall"
   !insertmacro UnregisterExtContextMenu ".jar"
 
   DeleteRegKey HKCR "Directory\shell\niuZip"
+  DeleteRegKey HKCR "*\shell\niuZip"
 
   ; 2. 清除控制面板卸载项与程序目录注册表
   DeleteRegKey ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}"

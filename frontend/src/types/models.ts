@@ -65,6 +65,13 @@ export interface ProgressEventData {
   stage?: string
 }
 
+export interface PathInfo {
+  path: string
+  name: string
+  is_dir: boolean
+  size: number
+}
+
 declare global {
   interface Window {
     go?: {
@@ -86,6 +93,10 @@ declare global {
           SelectDestDirDialog: () => Promise<string>
           SaveArchiveDialog: (defaultName: string) => Promise<string>
           SelectFilesToCompress: () => Promise<string[]>
+          SelectFolderToCompress: () => Promise<string>
+          GetPathInfos: (paths: string[]) => Promise<PathInfo[]>
+          GetInitialArchive: () => Promise<string>
+          GetInitialCreatePaths: () => Promise<string[]>
         }
       }
     }

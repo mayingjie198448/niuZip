@@ -102,8 +102,10 @@
 
     <!-- 7. Create Archive Modal -->
     <CreateModal
+      ref="createModalRef"
       :show="showCreateModal"
-      @close="showCreateModal = false"
+      :initial-files="createModalInitialPaths"
+      @close="closeCreateModal"
       @submit="handleCreateArchive"
     />
 
@@ -178,6 +180,13 @@ const {
 } = useArchive()
 
 const showCreateModal = ref(false)
+const createModalRef = ref<any>(null)
+const createModalInitialPaths = ref<string[]>([])
+
+function closeCreateModal() {
+  showCreateModal.value = false
+  createModalInitialPaths.value = []
+}
 
 // Software Update State
 const updateState = reactive({
@@ -307,7 +316,7 @@ function handleDrillDown(folderName: string) {
 }
 
 async function handleCreateArchive(opts: CompressOptions) {
-  showCreateModal.value = false
+  closeCreateModal()
   if (!window.go?.main?.App) return
 
   showProgress('正在创建压缩包...', 0, opts.DestPath)
@@ -330,7 +339,7 @@ function handleKeyDown(e: KeyboardEvent) {
   if (e.code === 'Escape') {
     closeContextMenu()
     renameModalState.show = false
-    showCreateModal.value = false
+    closeCreateModal()
     return
   }
   if (e.code === 'Space' && selectedItem.value && !selectedItem.value.is_dir) {
@@ -351,8 +360,26 @@ function handleKeyDown(e: KeyboardEvent) {
   }
 }
 
-onMounted(() => {
+onMounted(async () => {
   window.addEventListener('keydown', handleKeyDown)
+
+  // Check if initial archive or initial paths to compress were passed via CLI/context-menu
+  if (window.go?.main?.App) {
+    try {
+      const initialArchive = await window.go.main.App.GetInitialArchive?.()
+      if (initialArchive) {
+        await openArchive(initialArchive)
+      } else {
+        const initialCreatePaths = await window.go.main.App.GetInitialCreatePaths?.()
+        if (initialCreatePaths && initialCreatePaths.length > 0) {
+          createModalInitialPaths.value = initialCreatePaths
+          showCreateModal.value = true
+        }
+      }
+    } catch (e) {
+      console.error('Failed to get initial launch args:', e)
+    }
+  }
 
   if (window.runtime) {
     window.runtime.EventsOn('archive-opened', (data) => {
@@ -370,15 +397,26 @@ onMounted(() => {
 
     window.runtime.EventsOn('files-dropped', async (paths: string[]) => {
       if (paths && paths.length > 0) {
+        if (showCreateModal.value) {
+          createModalRef.value?.addPaths(paths)
+          return
+        }
         if (summary.value) {
           const dirLabel = currentDirectory.value || '根目录'
           const ok = confirm(`检测到拖入 ${paths.length} 个文件，是否追加到当前目录 (${dirLabel})？\n点击"确定"追加到当前压缩包，点击"取消"创建新压缩包。`)
           if (ok) {
             await appendDroppedFiles(paths)
           } else {
+            createModalInitialPaths.value = paths
             showCreateModal.value = true
           }
         } else {
+          const isArchive = paths.length === 1 && /\.(zip|7z|rar|tar|gz|tgz|bz2|tbz|tbz2|xz|txz|iso|cab|apk|jar)$/i.test(paths[0])
+          if (isArchive) {
+            await openArchive(paths[0])
+            return
+          }
+          createModalInitialPaths.value = paths
           showCreateModal.value = true
         }
       }

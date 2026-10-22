@@ -138,3 +138,28 @@ func TestAppService_SmartFlow_FontDetection(t *testing.T) {
 		t.Error("expected 'install_font' flow action, but none found")
 	}
 }
+
+func TestAppService_GetPathInfos(t *testing.T) {
+	tempDir := t.TempDir()
+
+	file1 := filepath.Join(tempDir, "doc.txt")
+	os.WriteFile(file1, []byte("content"), 0644)
+
+	dir1 := filepath.Join(tempDir, "subfolder")
+	os.MkdirAll(dir1, 0755)
+
+	app := niuzip.NewApp()
+	infos := app.GetPathInfos([]string{file1, dir1, filepath.Join(tempDir, "non_existent.file")})
+
+	if len(infos) != 2 {
+		t.Fatalf("expected 2 valid path infos, got %d", len(infos))
+	}
+
+	if infos[0].Name != "doc.txt" || infos[0].IsDir {
+		t.Errorf("expected file doc.txt with IsDir=false, got %+v", infos[0])
+	}
+
+	if infos[1].Name != "subfolder" || !infos[1].IsDir {
+		t.Errorf("expected dir subfolder with IsDir=true, got %+v", infos[1])
+	}
+}

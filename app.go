@@ -103,8 +103,12 @@ func (a *App) Startup(ctx context.Context) {
 
 // GetInitialArchive returns any archive path passed via command-line arguments (e.g. from right-click context menu).
 func (a *App) GetInitialArchive() string {
-	for _, arg := range os.Args[1:] {
+	for i := 1; i < len(os.Args); i++ {
+		arg := os.Args[i]
 		if strings.HasPrefix(arg, "-") {
+			continue
+		}
+		if i > 1 && os.Args[i-1] == "--add-dialog" {
 			continue
 		}
 		if fi, err := os.Stat(arg); err == nil && !fi.IsDir() {
@@ -112,6 +116,29 @@ func (a *App) GetInitialArchive() string {
 		}
 	}
 	return ""
+}
+
+// GetInitialCreatePaths returns any file or folder paths passed via command-line arguments to be compressed.
+func (a *App) GetInitialCreatePaths() []string {
+	var paths []string
+	addDialogMode := false
+
+	for i := 1; i < len(os.Args); i++ {
+		arg := os.Args[i]
+		if arg == "--add-dialog" {
+			addDialogMode = true
+			continue
+		}
+		if strings.HasPrefix(arg, "-") {
+			continue
+		}
+		if fi, err := os.Stat(arg); err == nil {
+			if addDialogMode || fi.IsDir() {
+				paths = append(paths, arg)
+			}
+		}
+	}
+	return paths
 }
 
 // Shutdown is called when the application closes; cleans up cached preview files.
@@ -488,6 +515,33 @@ func (a *App) SaveArchiveDialog(defaultName string) (string, error) {
 	})
 }
 
+// PathInfo represents metadata for a selected file or folder.
+type PathInfo struct {
+	Path  string `json:"path"`
+	Name  string `json:"name"`
+	IsDir bool   `json:"is_dir"`
+	Size  int64  `json:"size"`
+}
+
+// GetPathInfos inspects file/folder paths and returns metadata.
+func (a *App) GetPathInfos(paths []string) []PathInfo {
+	var result []PathInfo
+	for _, p := range paths {
+		clean := filepath.Clean(p)
+		fi, err := os.Stat(clean)
+		if err != nil {
+			continue
+		}
+		result = append(result, PathInfo{
+			Path:  clean,
+			Name:  fi.Name(),
+			IsDir: fi.IsDir(),
+			Size:  fi.Size(),
+		})
+	}
+	return result
+}
+
 // SelectFilesToCompress opens multi-file chooser dialog.
 func (a *App) SelectFilesToCompress() ([]string, error) {
 	if a.ctx == nil {
@@ -496,6 +550,17 @@ func (a *App) SelectFilesToCompress() ([]string, error) {
 
 	return wailsRuntime.OpenMultipleFilesDialog(a.ctx, wailsRuntime.OpenDialogOptions{
 		Title: "选择要压缩的文件",
+	})
+}
+
+// SelectFolderToCompress opens directory chooser dialog.
+func (a *App) SelectFolderToCompress() (string, error) {
+	if a.ctx == nil {
+		return "", errors.New("wails context not initialized")
+	}
+
+	return wailsRuntime.OpenDirectoryDialog(a.ctx, wailsRuntime.OpenDialogOptions{
+		Title: "选择要压缩的文件夹",
 	})
 }
 
